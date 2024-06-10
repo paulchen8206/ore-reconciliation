@@ -14,6 +14,7 @@ import mysql.connector
 import pandas as pd
 import smtplib
 import time
+from snsfactory import SnsFactory
 
 logging.config.dictConfig(LOG_CONFIG)
 logger = logging.getLogger("ORE_RECONCILIATION")
@@ -163,6 +164,34 @@ def retrieve_counts_from_athena(file, tables):
     )
 
 
+def sendSns(msg):
+    config = get_config('/.aws/credentials')
+
+    profile = "saml"
+
+    AWS_ACCESS_KEY = config.get(profile, 'aws_access_key_id')
+    AWS_SECRET_KEY = config.get(profile, 'aws_secret_access_key')
+    AWS_SESSION_TOKEN = config.get(profile, 'aws_session_token')
+    AWS_REGION = config.get(profile, 'region')
+
+    logger.info("Created SNS source")
+    sns = boto3.resource(
+        "sns",
+        aws_access_key_id=AWS_ACCESS_KEY,
+        aws_secret_access_key=AWS_SECRET_KEY,
+        aws_session_token=AWS_SESSION_TOKEN,
+        region_name=AWS_REGION,
+    )
+    topic = sns.create_topic(Name="ore-reconclile")
+
+    subject = "ore data reconcile"
+    email_message = msg
+    HTTPStatusCode = SnsFactory.publish_message(
+        topic, subject, email_message
+    )
+    print("Publish Status Code: ", str(HTTPStatusCode))
+
+
 def retrieve_counts_from_aurora(file, query):
     config = get_config('/.rds/config')
 
@@ -193,6 +222,9 @@ def retrieve_counts_from_aurora(file, query):
 
 
 if __name__ == "__main__":
+    # msg = {"content": "Aloha World!"}
+    # sendSns(msg)
+
     logger.info("===== Start table counts from Aurora database =====")
     retrieve_counts_from_aurora(aurora_file_path, aurora_query_str)
     logger.info("===== Complete table counts from Aurora database =====")
