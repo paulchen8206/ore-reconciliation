@@ -18,7 +18,7 @@ LOG_CONFIG = {
         }
     },
     "loggers": {
-        "Reconciliation Log": {
+        "ORE_RECONCILIATION": {
             "level": os.getenv("LOG_LEVEL", "INFO"),
             "handlers": ["console"],
         }
