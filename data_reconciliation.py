@@ -33,6 +33,18 @@ aurora_query_str = """
             UNION SELECT 'workorder' AS aurora_tbl_name, COUNT(*) counts FROM (SELECT DISTINCT work_order_identifier FROM work_order) i;
         """
 
+athena_tables = [
+    "dt_orderfulfillment_canonical_article_v1_avro_prd",
+    "dt_orderfulfillment_canonical_salesorder_v1_avro_prd",
+    "dt_orderfulfillment_canonical_salesorderreceipt_v1_avro_prd",
+    "dt_orderfulfillment_sapeccslt_site_v1_avro_prd",
+    "dt_productinformation_canonical_vehicle_v1_avro_prd",
+    "dt_storesalesservice_canonical_appointment_v2_avro_prd",
+    "dt_storesalesservice_canonical_vehicleinspection_v1_avro_prd",
+    "dt_storesalesservice_canonical_workorder_v1_avro_prd",
+    "dt_workforcemanagement_canonical_employee_v1_avro_prd",
+    "dt_workforcemanagement_canonical_employeepunchtime_v1_avro_prd"]
+
 
 def get_config(config_file_path):
     logger.info("Get the configuration.")
@@ -74,7 +86,7 @@ def emailResult():
     s.quit()
 
 
-def retrieve_counts_from_athena(file):
+def retrieve_counts_from_athena(file, tables):
     config = get_config('/.aws/credentials')
 
     profile = "saml-prd"
@@ -100,6 +112,20 @@ def retrieve_counts_from_athena(file):
     start_time = time.time()
 
     logger.info("Created athena connection")
+
+    for table in tables:
+        stmt = f"msck repair table {table};"
+        re = athena_client.start_query_execution(
+            QueryString=stmt,
+            QueryExecutionContext={"Database": SCHEMA_NAME},
+            ResultConfiguration={
+                "OutputLocation": S3_STAGING_DIR,
+                "EncryptionConfiguration": {"EncryptionOption": "SSE_S3"},
+            },
+        )
+        logger.info("Refresh HTTPStatusCode: " + str(re["ResponseMetadata"]["HTTPStatusCode"]))
+
+    logger.info("Refreshed of athena tables")
 
     resp = athena_client.start_query_execution(
         QueryString="SELECT * FROM canonical_table_counts",
@@ -172,7 +198,7 @@ if __name__ == "__main__":
     logger.info("===== Complete table counts from Aurora database =====")
 
     logger.info("===== Start table counts from Athena database =====")
-    retrieve_counts_from_athena(athena_file_path)
+    retrieve_counts_from_athena(athena_file_path, athena_tables)
     logger.info("===== Complete table counts from Athena database =====")
 
     df_aurora = pd.read_csv(aurora_file_path, header='infer').sort_values(by=['table_name'])
