@@ -15,12 +15,18 @@ LOG_CONFIG = {
             "level": "DEBUG",
             "formatter": "simple",
             "stream": "ext://sys.stdout",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "level": "DEBUG",
+            "formatter": "simple",
+            "filename": "log/ore_reconcile.log",
         }
     },
     "loggers": {
         "ORE_RECONCILIATION": {
             "level": os.getenv("LOG_LEVEL", "INFO"),
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
         }
     },
 }
