@@ -18,7 +18,7 @@ import logging
 logging.config.dictConfig(LOG_CONFIG)
 logger = logging.getLogger("ORE_ATHENA")
 
-with open('config/athena_config.yml', 'r') as f:
+with open('../config/athena_config.yml', 'r') as f:
     args = yaml.load(f, Loader=yaml.SafeLoader)
 
 # logger.info the values as a dictionary

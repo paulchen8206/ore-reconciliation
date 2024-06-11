@@ -8,14 +8,13 @@ from os.path import expanduser
 import boto3
 import configparser
 import csv
-import json
 import logging.config
 import logging
 import mysql.connector
 import pandas as pd
 import smtplib
 import time
-from snsfactory import SnsFactory
+from utils.snsfactory import SnsFactory
 
 logging.config.dictConfig(LOG_CONFIG)
 logger = logging.getLogger("ORE_RECONCILIATION")
