@@ -5,12 +5,8 @@ class SnsFactory:
 
     @staticmethod
     def publish_message(topic, subject, email_message):
-        message = {
-            'default': "default_message",
-            "email": email_message,
-        }
         response = topic.publish(
-            Message=json.dumps(message), Subject=subject, MessageStructure="json"
+            Message=json.dumps(email_message), Subject=subject
         )
         HTTPStatusCode = response["ResponseMetadata"]["HTTPStatusCode"]
 

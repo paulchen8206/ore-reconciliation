@@ -1,13 +1,14 @@
-from datetime import datetime
+import datetime
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from log_config import LOG_CONFIG
+from config.log_config import LOG_CONFIG
 from os.path import expanduser
 import boto3
 import configparser
 import csv
+import json
 import logging.config
 import logging
 import mysql.connector
@@ -164,6 +165,31 @@ def retrieve_counts_from_athena(file, tables):
     )
 
 
+def make_json(csvFilePath):
+    data = {}
+
+    with open(csvFilePath, encoding='utf-8') as csvf:
+        csvReader = csv.DictReader(csvf)
+        data = []
+        for rows in csvReader:
+            data.append(rows)
+
+    sorted_data = sorted(data, key=lambda a: a["table_name"])
+
+    logger.info(sorted_data)
+
+    return sorted_data
+
+
+def getMsgBody():
+    msg = {
+        "athena_table_counts": make_json(athena_file_path),
+        "aurora_table_counts": make_json(aurora_file_path)
+    }
+
+    return msg
+
+
 def sendSns(msg):
     config = get_config('/.aws/credentials')
 
@@ -182,10 +208,16 @@ def sendSns(msg):
         aws_session_token=AWS_SESSION_TOKEN,
         region_name=AWS_REGION,
     )
-    topic = sns.create_topic(Name="ore-reconclile")
+    topic = sns.create_topic(Name="ore-recon")
 
-    subject = "ore data reconcile"
-    email_message = msg
+    subject = "ORE Reconciliation Report @ " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    email_message = getMsgBody()
+
+    # json_object = json.loads(json.dumps(email_message))
+    #
+    # formatted_email_message = json.dumps(json_object, indent=2)
+
     HTTPStatusCode = SnsFactory.publish_message(
         topic, subject, email_message
     )
@@ -222,9 +254,6 @@ def retrieve_counts_from_aurora(file, query):
 
 
 if __name__ == "__main__":
-    # msg = {"content": "Aloha World!"}
-    # sendSns(msg)
-
     logger.info("===== Start table counts from Aurora database =====")
     retrieve_counts_from_aurora(aurora_file_path, aurora_query_str)
     logger.info("===== Complete table counts from Aurora database =====")
@@ -239,3 +268,7 @@ if __name__ == "__main__":
     result = pd.concat([df_aurora, df_athena]).sort_values(by=['table_name'])
 
     logger.info(result)
+    logger.info("===== Start Report to SNS =====")
+    msg = {"content": "Aloha World!"}
+    sendSns(msg)
+    logger.info("===== Complete Report to SNS =====")

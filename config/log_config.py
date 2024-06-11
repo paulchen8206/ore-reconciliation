@@ -27,6 +27,10 @@ LOG_CONFIG = {
         "ORE_RECONCILIATION": {
             "level": os.getenv("LOG_LEVEL", "INFO"),
             "handlers": ["console", "file"],
+        },
+        "ORE_ATHENA": {
+            "level": os.getenv("LOG_LEVEL", "INFO"),
+            "handlers": ["console"],
         }
     },
 }
