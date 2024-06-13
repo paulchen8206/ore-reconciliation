@@ -1,16 +1,15 @@
-from config.log_config import LOG_CONFIG
+from src.config.log_config import LOG_CONFIG
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from os.path import expanduser
-from utils.aws_config import aws_config
-from utils.snsfactory import SnsFactory
+from src.utils.aws_config import aws_config
+from src.utils.snsfactory import SnsFactory
 import boto3
 import configparser
 import csv
 import datetime
-import logging
 import logging.config
 import mysql.connector
 import pandas as pd

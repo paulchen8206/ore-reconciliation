@@ -1,14 +1,8 @@
-from config.log_config import LOG_CONFIG
-from func_timeout import func_timeout, FunctionTimedOut
+from src.config.log_config import LOG_CONFIG
 from os.path import expanduser
 import boto3
-import botocore
 import configparser
-import csv
-import logging
 import logging.config
-import re
-import sys
 import time
 import yaml
 

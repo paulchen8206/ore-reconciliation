@@ -1,4 +1,4 @@
-from config.log_config import LOG_CONFIG
+from src.config.log_config import LOG_CONFIG
 from os.path import expanduser
 import boto3
 import configparser
