@@ -1,20 +1,21 @@
-import datetime
+from config.log_config import LOG_CONFIG
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from config.log_config import LOG_CONFIG
 from os.path import expanduser
+from utils.aws_config import aws_config
+from utils.snsfactory import SnsFactory
 import boto3
 import configparser
 import csv
-import logging.config
+import datetime
 import logging
+import logging.config
 import mysql.connector
 import pandas as pd
 import smtplib
 import time
-from utils.snsfactory import SnsFactory
 
 logging.config.dictConfig(LOG_CONFIG)
 logger = logging.getLogger("ORE_RECONCILIATION")
@@ -253,6 +254,10 @@ def retrieve_counts_from_aurora(file, query):
 
 
 if __name__ == "__main__":
+    logger.info("===== Start AWS Config =====")
+    aws_config()
+    logger.info("===== Complete AWS Config =====")
+
     logger.info("===== Start table counts from Aurora database =====")
     retrieve_counts_from_aurora(aurora_file_path, aurora_query_str)
     logger.info("===== Complete table counts from Aurora database =====")

@@ -46,9 +46,10 @@ athena_table_list = ["dt_orderfulfillment_canonical_article_v1_avro_prd",
                      "dt_workforcemanagement_canonical_employee_v1_avro_prd",
                      "dt_workforcemanagement_canonical_employeepunchtime_v1_avro_prd"]
 
-month_list = ["06", "07", "08", "09", "10", "11", "12"]
-day_list = ["12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-            "30"]
+month_list = ["10"]
+day_list = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+            "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+            "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"]
 hour_list = ["00",
              "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
              "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
@@ -121,23 +122,22 @@ def update_athena():
     logger.info("Created athena connection")
 
     for table in athena_table_list:
-        for i in day_list:
-            for j in hour_list:
-                stmt = f'ALTER TABLE {table} ADD IF NOT EXISTS PARTITION(year="2024",month="06",day={i},hour={j})'
-                re = athena_client.start_query_execution(
-                    QueryString=stmt,
-                    QueryExecutionContext={"Database": SCHEMA_NAME},
-                    ResultConfiguration={
-                        "OutputLocation": S3_STAGING_DIR,
-                        "EncryptionConfiguration": {"EncryptionOption": "SSE_S3"},
-                    },
-                )
-                logger.info("Refresh HTTPStatusCode: " + str(re["ResponseMetadata"]["HTTPStatusCode"]))
+        for k in month_list:
+            for i in day_list:
+                for j in hour_list:
+                    stmt = f'ALTER TABLE {table} ADD IF NOT EXISTS PARTITION(year="2024",month={k},day={i},hour={j})'
+                    re = athena_client.start_query_execution(
+                        QueryString=stmt,
+                        QueryExecutionContext={"Database": SCHEMA_NAME},
+                        ResultConfiguration={
+                            "OutputLocation": S3_STAGING_DIR,
+                            "EncryptionConfiguration": {"EncryptionOption": "SSE_S3"},
+                        },
+                    )
+                    logger.info("Refresh HTTPStatusCode: " + str(re["ResponseMetadata"]["HTTPStatusCode"]))
 
     logger.info("Refreshed of athena tables")
 
-
-update_athena()
 
 #
 # def s3CheckIfBucketExists(s3Resource, bucketName):
@@ -349,3 +349,7 @@ update_athena()
 #     logger.info("S3 Folder does not exist.")
 #     logger.info("----------------------------------")
 #     logger.info("#~ FAILURE ~#")
+
+
+if __name__ == "__main__":
+    update_athena()
