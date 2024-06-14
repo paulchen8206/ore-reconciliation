@@ -114,19 +114,20 @@ def retrieve_counts_from_athena(file, tables):
 
     logger.info("Created athena connection")
 
-    for table in tables:
-        stmt = f"msck repair table {table};"
-        re = athena_client.start_query_execution(
-            QueryString=stmt,
-            QueryExecutionContext={"Database": SCHEMA_NAME},
-            ResultConfiguration={
-                "OutputLocation": S3_STAGING_DIR,
-                "EncryptionConfiguration": {"EncryptionOption": "SSE_S3"},
-            },
-        )
-        logger.info("Refresh HTTPStatusCode: " + str(re["ResponseMetadata"]["HTTPStatusCode"]))
-
-    logger.info("Refreshed of athena tables")
+    # a seperate program updates the glue metadata before this reconciliation process:
+    # for table in tables:
+    #     stmt = f"msck repair table {table};"
+    #     re = athena_client.start_query_execution(
+    #         QueryString=stmt,
+    #         QueryExecutionContext={"Database": SCHEMA_NAME},
+    #         ResultConfiguration={
+    #             "OutputLocation": S3_STAGING_DIR,
+    #             "EncryptionConfiguration": {"EncryptionOption": "SSE_S3"},
+    #         },
+    #     )
+    #     logger.info("Refresh HTTPStatusCode: " + str(re["ResponseMetadata"]["HTTPStatusCode"]))
+    #
+    # logger.info("Refreshed of athena tables")
 
     resp = athena_client.start_query_execution(
         QueryString="SELECT * FROM canonical_table_counts",
