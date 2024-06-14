@@ -91,6 +91,9 @@ def getCreds(username=None,
         if profile == 'saml-prd':
             selectedroleindex = 8
 
+        if profile == 'saml-stg':
+            selectedroleindex = 13
+
         if int(selectedroleindex) > (len(awsroles) - 1):
             print('You selected an invalid role index, please try again')
             sys.exit(0)
@@ -176,6 +179,14 @@ def aws_config():
     getCreds(username=username,
              password=password,
              profile='saml-prd',
+             idpentryurl=idpentryurl,
+             saml2attribute_root_iter=saml2attribute_root_iter,
+             saml2attribute_name=saml2attribute_name,
+             saml2attribute_iter=saml2attribute_iter)
+
+    getCreds(username=username,
+             password=password,
+             profile='saml-stg',
              idpentryurl=idpentryurl,
              saml2attribute_root_iter=saml2attribute_root_iter,
              saml2attribute_name=saml2attribute_name,
