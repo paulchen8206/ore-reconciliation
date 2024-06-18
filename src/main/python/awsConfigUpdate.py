@@ -1,4 +1,4 @@
-from src.utils.aws_config import aws_config
+from src.main.python.utils.aws_config import aws_config
 
 if __name__ == "__main__":
     print("===== Start AWS Config =====")

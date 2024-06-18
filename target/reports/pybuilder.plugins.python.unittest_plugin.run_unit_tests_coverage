@@ -1,0 +1,12 @@
+Name                            Stmts   Miss  Cover
+---------------------------------------------------
+awsConfigUpdate.py                  5      5     0%
+config/log_config.py                2      2     0%
+data_reconciliation.py            150    150     0%
+update_athena.py                   59     59     0%
+utils/aws_config.py               121    121     0%
+utils/retrieve_data_athena.py      52     52     0%
+utils/retrieve_data_aurora.py      29     29     0%
+utils/snsfactory.py                15     15     0%
+---------------------------------------------------
+TOTAL                             433    433     0%

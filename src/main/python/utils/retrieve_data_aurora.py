@@ -1,4 +1,4 @@
-from src.config.log_config import LOG_CONFIG
+from src.main.python.config.log_config import LOG_CONFIG
 from os.path import expanduser
 import configparser
 import csv
