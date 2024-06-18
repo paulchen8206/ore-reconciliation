@@ -1,11 +1,11 @@
-from src.config.log_config import LOG_CONFIG
+from config.log_config import LOG_CONFIG
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from os.path import expanduser
-from src.utils.aws_config import aws_config
-from src.utils.snsfactory import SnsFactory
+from utils.aws_config import aws_config
+from utils.snsfactory import SnsFactory
 import boto3
 import configparser
 import csv
@@ -114,21 +114,6 @@ def retrieve_counts_from_athena(file, tables):
 
     logger.info("Created athena connection")
 
-    # a seperate program updates the glue metadata before this reconciliation process:
-    # for table in tables:
-    #     stmt = f"msck repair table {table};"
-    #     re = athena_client.start_query_execution(
-    #         QueryString=stmt,
-    #         QueryExecutionContext={"Database": SCHEMA_NAME},
-    #         ResultConfiguration={
-    #             "OutputLocation": S3_STAGING_DIR,
-    #             "EncryptionConfiguration": {"EncryptionOption": "SSE_S3"},
-    #         },
-    #     )
-    #     logger.info("Refresh HTTPStatusCode: " + str(re["ResponseMetadata"]["HTTPStatusCode"]))
-    #
-    # logger.info("Refreshed of athena tables")
-
     resp = athena_client.start_query_execution(
         QueryString="SELECT * FROM canonical_table_counts",
         QueryExecutionContext={"Database": SCHEMA_NAME},
@@ -190,6 +175,28 @@ def getMsgBody():
     return msg
 
 
+def getCsvMsg():
+    df_aurora = pd.read_csv("log/table_counts_aurora.csv", header='infer').sort_values(by=['table_name'])
+    df_athena = pd.read_csv("log/table_counts_athena.csv", header='infer').sort_values(by=['table_name'])
+
+    df_combined = pd.merge(df_aurora, df_athena, on='table_name', how='outer',
+                           suffixes=('_aurora', '_athena')).sort_values("table_name")
+
+    df_combined.to_csv("log/table_counts_combined.csv", sep=',', header=True, index=False, quotechar='"',
+                       quoting=csv.QUOTE_ALL)
+
+    msg = ""
+
+    with open("log/table_counts_combined.csv", mode='r') as file:
+        csvFile = csv.reader(file)
+        for rows in csvFile:
+            msg = msg + ', '.join(rows) + '\r\n'
+
+    print(msg)
+
+    return msg
+
+
 def sendSns(msg):
     config = get_config('/.aws/credentials')
 
@@ -210,16 +217,10 @@ def sendSns(msg):
     )
     topic = sns.create_topic(Name="ore-recon")
 
-    subject = "ORE Reconciliation Report @ " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    email_message = getMsgBody()
-
-    # json_object = json.loads(json.dumps(email_message))
-    #
-    # formatted_email_message = json.dumps(json_object, indent=2)
+    subject = "ORE Reconciliation Report at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     HTTPStatusCode = SnsFactory.publish_message(
-        topic, subject, email_message
+        topic, subject, msg
     )
     print("Publish Status Code: ", str(HTTPStatusCode))
 
@@ -266,13 +267,6 @@ if __name__ == "__main__":
     retrieve_counts_from_athena(athena_file_path, athena_tables)
     logger.info("===== Complete table counts from Athena database =====")
 
-    df_aurora = pd.read_csv(aurora_file_path, header='infer').sort_values(by=['table_name'])
-    df_athena = pd.read_csv(athena_file_path, header='infer').sort_values(by=['table_name'])
-
-    result = pd.concat([df_aurora, df_athena]).sort_values(by=['table_name'])
-
-    logger.info(result)
     logger.info("===== Start Report to SNS =====")
-    msg = {"content": "Aloha World!"}
-    sendSns(msg)
+    sendSns(getCsvMsg())
     logger.info("===== Complete Report to SNS =====")

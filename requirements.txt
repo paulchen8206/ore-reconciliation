@@ -3,6 +3,7 @@ beautifulsoup4==4.12.3
 boto3==1.34.122
 botocore==1.34.122
 bs4==0.0.2
+build==1.2.1
 certifi==2024.6.2
 cffi==1.16.0
 charset-normalizer==3.3.2
@@ -11,13 +12,16 @@ cryptography==42.0.8
 fsspec==2024.6.0
 func-timeout==4.3.5
 idna==3.7
+importlib_metadata==7.1.0
 jmespath==1.0.1
 mysql-connector-python==8.4.0
 numpy==1.26.4
+packaging==24.1
 pandas==2.2.2
 py4j==0.10.9.7
 PyAthena==3.8.3
 pycparser==2.22
+pyproject_hooks==1.1.0
 pyspark==3.5.1
 pyspnego==0.11.0
 python-dateutil==2.9.0.post0
@@ -30,6 +34,8 @@ six==1.16.0
 soupsieve==2.5
 SQLAlchemy==2.0.30
 tenacity==8.3.0
+tomli==2.0.1
 typing_extensions==4.12.2
 tzdata==2024.1
 urllib3==1.26.18
+zipp==3.19.2
