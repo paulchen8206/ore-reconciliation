@@ -185,16 +185,21 @@ def getCsvMsg():
     df_combined.to_csv("log/table_counts_combined.csv", sep=',', header=True, index=False, quotechar='"',
                        quoting=csv.QUOTE_ALL)
 
-    msg = ""
+    msg = "table_name.............aurora....athena\n---------------------------------------\n"
 
-    with open("log/table_counts_combined.csv", mode='r') as file:
+    with (open("log/table_counts_combined.csv", mode='r') as file):
         csvFile = csv.reader(file)
+        next(csvFile)
         for rows in csvFile:
-            msg = msg + ', '.join(rows) + '\n\n'
+            msg = msg + \
+                  rows[0].ljust(19, ".") + \
+                  rows[1].rjust(10, '.') + \
+                  rows[2].rjust(10, '.') + \
+                  "\n"
 
-    print(msg)
+    message = f'Hi Team,\n\nThe data reconciliation result for your review:\n\n{msg}'
 
-    return msg
+    return message
 
 
 def sendSns(msg):
@@ -217,12 +222,15 @@ def sendSns(msg):
     )
     topic = sns.create_topic(Name="ore-recon")
 
+    default_message = ""
+    sms_message = ""
+    email_message = msg
+
     subject = "ORE Reconciliation Report at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    HTTPStatusCode = SnsFactory.publish_message(
-        topic, subject, msg
-    )
-    print("Publish Status Code: ", str(HTTPStatusCode))
+    message_id = SnsFactory.publish_message(topic, subject, default_message, sms_message, email_message)
+
+    print("Publish Status Code: ", str(message_id))
 
 
 def retrieve_counts_from_aurora(file, query):
@@ -270,3 +278,5 @@ if __name__ == "__main__":
     logger.info("===== Start Report to SNS =====")
     sendSns(getCsvMsg())
     logger.info("===== Complete Report to SNS =====")
+
+    print(getCsvMsg())
