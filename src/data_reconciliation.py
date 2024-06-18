@@ -190,7 +190,7 @@ def getCsvMsg():
     with open("log/table_counts_combined.csv", mode='r') as file:
         csvFile = csv.reader(file)
         for rows in csvFile:
-            msg = msg + ', '.join(rows) + '\r\n'
+            msg = msg + ', '.join(rows) + '\n\n'
 
     print(msg)
 
